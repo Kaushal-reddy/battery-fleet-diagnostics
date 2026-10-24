@@ -1,0 +1,9 @@
+.venv/
+data/raw/
+data/*.db
+bms_can/output/
+__pycache__/
+.pytest_cache/
+CLAUDE.md
+.claude/
+PROJECT_SPEC.md

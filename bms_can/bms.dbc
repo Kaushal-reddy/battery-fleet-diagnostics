@@ -1,0 +1,21 @@
+VERSION ""
+
+NS_ :
+
+BS_:
+
+BU_: BMS
+
+BO_ 256 BMS_Status: 8 BMS
+ SG_ pack_voltage_v : 0|16@1+ (0.1,0) [0|6553.5] "V" Vector__XXX
+ SG_ pack_current_a : 16|16@1- (0.1,0) [-3276.8|3276.7] "A" Vector__XXX
+ SG_ soc_pct : 32|8@1+ (0.5,0) [0|127.5] "%" Vector__XXX
+
+BO_ 257 BMS_Temps: 8 BMS
+ SG_ max_cell_temp_c : 0|8@1+ (1,-40) [-40|215] "degC" Vector__XXX
+ SG_ min_cell_temp_c : 8|8@1+ (1,-40) [-40|215] "degC" Vector__XXX
+
+BO_ 258 BMS_Faults: 8 BMS
+ SG_ overtemp_flag : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ undervoltage_flag : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ comm_fault_flag : 2|1@1+ (1,0) [0|1] "" Vector__XXX
