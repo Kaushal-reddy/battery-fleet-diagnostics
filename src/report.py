@@ -11,7 +11,7 @@ import pandas as pd
 
 from src import config
 from src.analysis import cell_metrics, run_query
-from src.anomalies import fade_thresholds
+from src.anomalies import fade_thresholds, robust_threshold
 from src.build_db import connect
 
 DPI = 150
@@ -66,12 +66,17 @@ def plot_fade(metrics: pd.DataFrame, thresholds: dict) -> str:
     m = m.sort_values(["order", "fade_rate_ah_per_100"]).reset_index(drop=True)
     fig, ax = plt.subplots(figsize=(11, 5))
     ax.bar(m.index, m["fade_rate_ah_per_100"], color=m["grp"].map(GROUP_COLORS))
+    small = {grp for grp, g in m.groupby("grp") if len(g) < config.MIN_GROUP_SIZE}
     for grp, g in m.groupby("grp"):
-        ax.hlines(thresholds[grp][0], g.index.min() - 0.4, g.index.max() + 0.4, colors="k", ls="--")
+        ax.hlines(thresholds[grp][0], g.index.min() - 0.4, g.index.max() + 0.4, colors="k",
+                  ls=":" if grp in small else "--")
     ax.set_xticks(m.index, m["cell_id"], rotation=60, fontsize=8)
     ax.set(ylabel="Fade rate (Ah per 100 cycles)", title="Fade rate by cell and group")
-    line = plt.Line2D([], [], color="k", ls="--", label="group threshold")
-    group_legend(ax, GROUP_ORDER, [line])
+    lines = [plt.Line2D([], [], color="k", ls="--", label="group threshold")]
+    if small:
+        lines.append(plt.Line2D([], [], color="k", ls=":",
+                                label=f"fleet-wide threshold (group < {config.MIN_GROUP_SIZE} cells)"))
+    group_legend(ax, GROUP_ORDER, lines)
     return save(fig, "fade_rate_by_cell.png")
 
 
@@ -94,10 +99,16 @@ def plot_resistance(metrics: pd.DataFrame, flags: pd.DataFrame) -> str:
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.scatter(metrics["delta_re"] * 1000, metrics["delta_rct"] * 1000,
                c=metrics["grp"].map(GROUP_COLORS), s=40)
-    for rule, draw in [("resistance_growth_re", ax.axvline), ("resistance_growth_rct", ax.axhline)]:
-        thr = flags.loc[flags["rule"] == rule, "threshold"]
-        if len(thr):
-            draw(thr.iloc[0] * 1000, color="k", ls="--", lw=1)
+    # Same thresholds as the rule, drawn even when no cell crosses them.
+    re_thr = robust_threshold(metrics["delta_re"], config.RES_MAD_K)
+    rct_thr = robust_threshold(metrics["delta_rct"], config.RES_MAD_K)
+    lines = []
+    if not np.isnan(re_thr):
+        ax.axvline(re_thr * 1000, color="k", ls="--", lw=1)
+        lines.append(plt.Line2D([], [], color="k", ls="--", lw=1, label=f"Re threshold {re_thr * 1000:.1f} mΩ"))
+    if not np.isnan(rct_thr):
+        ax.axhline(rct_thr * 1000, color="k", ls=":", lw=1)
+        lines.append(plt.Line2D([], [], color="k", ls=":", lw=1, label=f"Rct threshold {rct_thr * 1000:.1f} mΩ"))
     flagged = flags.loc[flags["rule"].str.startswith("resistance"), "cell_id"].unique()
     for r in metrics[metrics["cell_id"].isin(flagged)].itertuples():
         ax.annotate(r.cell_id, (r.delta_re * 1000, r.delta_rct * 1000),
@@ -105,8 +116,8 @@ def plot_resistance(metrics: pd.DataFrame, flags: pd.DataFrame) -> str:
     ax.axhline(0, color="grey", lw=0.5)
     ax.set(xlabel="Re growth (mΩ)", ylabel="Rct growth (mΩ)",
            title=f"Resistance growth (median of last {config.IMP_EDGE_TESTS} tests - first "
-                 f"{config.IMP_EDGE_TESTS}); dashed = fleet threshold")
-    group_legend(ax, GROUP_ORDER)
+                 f"{config.IMP_EDGE_TESTS}), fleet-wide thresholds")
+    group_legend(ax, GROUP_ORDER, lines)
     return save(fig, "resistance_growth.png")
 
 
