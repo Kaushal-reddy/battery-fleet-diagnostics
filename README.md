@@ -37,7 +37,7 @@ Outputs:
   - 36 at 4 °C / 1 A
   - 40 at 4 °C / 2 A
   - None of the 43 °C cells got there within their 40-cycle test.
-- **Fast degraders:** two cells were flagged, B0049 (1.74 Ah per 100 cycles) and B0051 (1.52), against a group threshold of 0.53. Both lost 16–22 % of their capacity in a single cycle, right after a test-rig event in the raw data, and never recovered.
+- **Fast degraders:** two cells were flagged, B0049 (1.74 Ah per 100 cycles) and B0051 (1.52), against a group threshold of 0.53. Both were on the same test rig, which stopped for 53 hours. The first discharge after the restart reported an implausible 2.3–2.4 Ah, above the cells' 2.0 Ah rating, and that cycle is dropped during cleaning. From then on, both cells held 16–22 % less capacity and never recovered. The flag is correct, but the cause is a test event, not normal aging.
 - **Resistance growth:** three cells were flagged on growth in ohmic resistance (Re): B0007, B0047 and B0049.
 - **Temperature and fade:** peak temperature and fade rate have only a weak rank correlation (Spearman ρ = 0.18). The groups differ in load current and ambient temperature, not only in how hot the cells run.
 
