@@ -135,6 +135,14 @@ def threshold_summary(thr: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def threshold_per_cell(thr: pd.DataFrame) -> pd.DataFrame:
+    """Per-cell crossing cycles as whole numbers, with EOL marked n/a where the reference starts below it."""
+    eligible = thr["ref_capacity_ah"] > config.EOL_CAPACITY_AH
+    eol = thr["first_cycle_below_eol"].astype("Int64").astype(object).where(eligible, "n/a")
+    return thr.assign(first_cycle_below_soh=thr["first_cycle_below_soh"].astype("Int64"),
+                      first_cycle_below_eol=eol)
+
+
 def findings(metrics: pd.DataFrame, flags: pd.DataFrame, soh: pd.DataFrame,
              cells: pd.DataFrame, thresholds: dict) -> list[str]:
     """Plain-language findings, built only from computed values."""
@@ -240,7 +248,7 @@ counted. {eol_note} A dash means the threshold was not reached before the test e
 
 <details><summary>Per cell</summary>
 
-{md_table(thr, digits=3)}
+{md_table(threshold_per_cell(thr), digits=3)}
 
 </details>
 
