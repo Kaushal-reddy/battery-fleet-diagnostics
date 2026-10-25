@@ -154,6 +154,14 @@ def threshold_per_cell(thr: pd.DataFrame) -> pd.DataFrame:
                       first_cycle_below_eol=eol)
 
 
+def jump_causes(jumps: pd.DataFrame) -> pd.DataFrame:
+    """Count capacity jumps by cause, for all jumps and for those above CAP_JUMP_LARGE_AH."""
+    cause = jumps["note"].str.replace(r"^after \d+ h rest", "after long rest", regex=True)  # group across hours
+    large = jumps["value"] > config.CAP_JUMP_LARGE_AH
+    return (pd.DataFrame({"cause": cause, "all": 1, f"> {config.CAP_JUMP_LARGE_AH} Ah": large.astype(int)})
+            .groupby("cause").sum().sort_values("all", ascending=False).reset_index())
+
+
 def findings(metrics: pd.DataFrame, flags: pd.DataFrame, soh: pd.DataFrame,
              cells: pd.DataFrame, thresholds: dict) -> list[str]:
     """Plain-language findings, built only from computed values."""
@@ -288,6 +296,10 @@ Fleet-wide robust threshold on growth in Re and Rct (Ω).
 ### Capacity jumps
 
 {len(jumps)} cycles; {(jumps["value"] > config.CAP_JUMP_LARGE_AH).sum()} exceed {config.CAP_JUMP_LARGE_AH} Ah.
+Discharges normally start a few hours apart; a gap over {config.REST_GAP_H:g} h counts as a rest.
+
+{md_table(jump_causes(jumps))}
+
 Largest 10:
 
 {md_table(jumps.nlargest(10, "value")[flag_cols])}

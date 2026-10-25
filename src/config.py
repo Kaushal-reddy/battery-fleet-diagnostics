@@ -23,13 +23,16 @@ FADE_MAD_K = 3.0
 MAD_SCALE = 1.4826
 MIN_GROUP_SIZE = 4
 CAP_JUMP_AH = 0.03
-CAP_JUMP_LARGE_AH = 0.10     # rises above this follow a partial/glitch cycle, not just rest
+CAP_JUMP_LARGE_AH = 0.10     # rises above this are counted separately in the report
+REST_GAP_H = 24.0            # discharges normally start ~4 h apart (95 % within 16 h); longer = a rest
+PARTIAL_CYCLE_FRACTION = 0.9 # previous cycle below this x its recent median = partial discharge
+JUMP_BASELINE_CYCLES = 5     # cycles in that recent median
 THERMAL_WINDOW = 10          # cycles
 THERMAL_MARGIN_C = 3.0
 RES_MAD_K = 3.0
 IMP_EDGE_TESTS = 3           # resistance growth = median of last N tests - median of first N
 
-# Part A: cell groups (discharge ambient + load), to be confirmed against READMEs in Stage 1
+# Part A: cell groups (discharge ambient + load), checked against the NASA READMEs
 CELL_GROUPS = {
     **{c: "24C_2A" for c in ["B0005", "B0006", "B0007", "B0018", "B0036"]},
     **{c: "24C_4A" for c in ["B0033", "B0034"]},

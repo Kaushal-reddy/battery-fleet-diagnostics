@@ -29,6 +29,7 @@ SELECT d.cell_id,
        d.cycle_idx,
        d.capacity_ah,
        d.max_temp_c,
+       d.start_time,
        d.capacity_ah / c.ref_capacity_ah AS soh,
        d.capacity_ah - LAG(d.capacity_ah) OVER (
          PARTITION BY d.cell_id ORDER BY d.cycle_idx

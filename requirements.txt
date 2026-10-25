@@ -1,7 +1,7 @@
-numpy
-pandas
-scipy
-matplotlib
-python-can
-cantools
-pytest
+numpy==2.5.4
+pandas==3.1.0
+scipy==1.18.1
+matplotlib==3.11.2
+python-can==4.6.1
+cantools==45.1.0
+pytest==9.1.1

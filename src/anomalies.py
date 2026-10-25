@@ -49,13 +49,33 @@ def flag_fast_degraders(metrics: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=FLAG_COLUMNS)
 
 
+def jump_note(rest_h: float, prev_low: bool, delta_ah: float) -> str:
+    """Explain a capacity rise from the evidence: a long rest, a low previous cycle, or neither."""
+    if rest_h > config.REST_GAP_H and prev_low:
+        return f"after {rest_h:.0f} h rest and a low (partial) previous cycle"
+    if rest_h > config.REST_GAP_H:
+        return f"after {rest_h:.0f} h rest; capacity recovery, real behaviour"
+    if prev_low:
+        return "previous cycle low (partial discharge); return to trend"
+    if delta_ah > config.CAP_JUMP_LARGE_AH:
+        return "large rise with no long rest or low previous cycle; cause not identified"
+    return "small rise at normal cycle spacing; normal variation"
+
+
 def flag_capacity_jumps(discharge: pd.DataFrame) -> pd.DataFrame:
     """Flag cycles where capacity rose by more than CAP_JUMP_AH since the previous cycle."""
+    d = discharge.sort_values(["cell_id", "cycle_idx"]).copy()
+    by_cell = d.groupby("cell_id")
+    start = pd.to_datetime(d["start_time"], format="ISO8601")  # some timestamps lack microseconds
+    d["rest_h"] = start.groupby(d["cell_id"]).diff().dt.total_seconds() / 3600
+    # Previous cycle compared with the median of the cycles just before it.
+    recent = by_cell["capacity_ah"].transform(
+        lambda s: s.shift(2).rolling(config.JUMP_BASELINE_CYCLES).median())
+    d["prev_low"] = by_cell["capacity_ah"].shift(1) < config.PARTIAL_CYCLE_FRACTION * recent
+
     # delta_ah comes from the LAG() window in soh_per_cycle; break-in cycles are skipped.
-    d = discharge[(discharge["before_ref"] == 0) & (discharge["delta_ah"] > config.CAP_JUMP_AH)]
-    note = np.where(d["delta_ah"] > config.CAP_JUMP_LARGE_AH,
-                    "large rise; previous cycle likely a partial discharge",
-                    "capacity recovery after rest; real behaviour, retained")
+    d = d[(d["before_ref"] == 0) & (d["delta_ah"] > config.CAP_JUMP_AH)]
+    note = [jump_note(r.rest_h, r.prev_low, r.delta_ah) for r in d.itertuples()]
     return pd.DataFrame({
         "cell_id": d["cell_id"], "cycle_idx": d["cycle_idx"], "rule": "capacity_jump",
         "value": d["delta_ah"], "threshold": config.CAP_JUMP_AH, "note": note,

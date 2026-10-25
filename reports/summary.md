@@ -155,20 +155,30 @@ Fleet-wide robust threshold on growth in Re and Rct (Ω).
 ### Capacity jumps
 
 116 cycles; 26 exceed 0.1 Ah.
+Discharges normally start a few hours apart; a gap over 24 h counts as a rest.
+
+| cause | all | > 0.1 Ah |
+|---|---|---|
+| small rise at normal cycle spacing; normal variation | 57 | 0 |
+| after long rest; capacity recovery, real behaviour | 54 | 21 |
+| large rise with no long rest or low previous cycle; cause not identified | 3 | 3 |
+| after long rest and a low (partial) previous cycle | 1 | 1 |
+| previous cycle low (partial discharge); return to trend | 1 | 1 |
+
 Largest 10:
 
 | cell_id | cycle_idx | value | threshold | note |
 |---|---|---|---|---|
-| B0033 | 138 | 0.618 | 0.030 | large rise; previous cycle likely a partial discharge |
-| B0033 | 112 | 0.425 | 0.030 | large rise; previous cycle likely a partial discharge |
-| B0034 | 114 | 0.410 | 0.030 | large rise; previous cycle likely a partial discharge |
-| B0033 | 147 | 0.315 | 0.030 | large rise; previous cycle likely a partial discharge |
-| B0034 | 46 | 0.312 | 0.030 | large rise; previous cycle likely a partial discharge |
-| B0033 | 44 | 0.273 | 0.030 | large rise; previous cycle likely a partial discharge |
-| B0034 | 22 | 0.228 | 0.030 | large rise; previous cycle likely a partial discharge |
-| B0036 | 46 | 0.222 | 0.030 | large rise; previous cycle likely a partial discharge |
-| B0034 | 67 | 0.197 | 0.030 | large rise; previous cycle likely a partial discharge |
-| B0034 | 156 | 0.173 | 0.030 | large rise; previous cycle likely a partial discharge |
+| B0033 | 138 | 0.618 | 0.030 | after 37 h rest and a low (partial) previous cycle |
+| B0033 | 112 | 0.425 | 0.030 | large rise with no long rest or low previous cycle; cause not identified |
+| B0034 | 114 | 0.410 | 0.030 | large rise with no long rest or low previous cycle; cause not identified |
+| B0033 | 147 | 0.315 | 0.030 | previous cycle low (partial discharge); return to trend |
+| B0034 | 46 | 0.312 | 0.030 | after 308 h rest; capacity recovery, real behaviour |
+| B0033 | 44 | 0.273 | 0.030 | after 308 h rest; capacity recovery, real behaviour |
+| B0034 | 22 | 0.228 | 0.030 | after 83 h rest; capacity recovery, real behaviour |
+| B0036 | 46 | 0.222 | 0.030 | after 308 h rest; capacity recovery, real behaviour |
+| B0034 | 67 | 0.197 | 0.030 | after 128 h rest; capacity recovery, real behaviour |
+| B0034 | 156 | 0.173 | 0.030 | after 208 h rest; capacity recovery, real behaviour |
 
 ## Figures
 

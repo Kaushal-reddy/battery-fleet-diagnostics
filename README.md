@@ -4,7 +4,7 @@ This project does two things a battery energy storage team does day to day. Firs
 
 ## How to run
 
-Requires Python 3.11+.
+Tested with Python 3.12. `requirements.txt` pins the exact library versions it was tested with.
 
 ```bash
 python -m venv .venv
@@ -17,7 +17,7 @@ Download the **Battery Data Set** (`5. Battery Data Set.zip`) from the
 It contains six inner zips. Extract them all and copy every `B00xx.mat` file into `data/raw/`, which gives 34 cells. B0025–B0028 appear twice, and the copies are identical.
 
 ```bash
-python run_all.py   # about 5 seconds; rebuilds the database, both reports and all figures
+python run_all.py   # under 15 seconds; rebuilds the database, both reports and all figures
 pytest              # 13 unit tests
 ```
 
@@ -34,6 +34,7 @@ Outputs:
 - **Fade rate:** fastest at 43 °C / 4 A, with a median of 0.54 Ah lost per 100 cycles. Slowest at 24 °C / 4 A, with 0.15 Ah per 100 cycles.
 - **Cycles to 80 % state of health (median by group):**
   - 92 cycles at 24 °C / 2 A
+  - 144 at 24 °C / 4 A
   - 36 at 4 °C / 1 A
   - 40 at 4 °C / 2 A
   - None of the 43 °C cells got there within their 40-cycle test.
@@ -71,7 +72,7 @@ Every threshold is computed from the data with a robust statistic: median + 3 ×
 - **Fast degrader:** a cell's fade rate (slope of a straight line fitted to capacity against cycle) is compared with its own test group. Groups are compared separately because temperature and load change fade rates a lot. A group with fewer than 4 cells has too few samples for its own threshold, so it uses the fleet-wide one.
 - **Resistance growth:** the median of a cell's last three impedance tests minus the median of its first three, for both Re and Rct, compared fleet-wide. Using medians stops a single noisy test from setting the result.
 - **Thermal outlier:** a cycle whose peak temperature is more than 3 °C above the median of that cell's previous 10 cycles.
-- **Capacity jump:** a rise of more than 0.03 Ah from one cycle to the next. This is recorded but expected, since Li-ion cells recover some capacity after rest.
+- **Capacity jump:** a rise of more than 0.03 Ah from one cycle to the next. Each jump is labelled with its likely cause, using the cycle timestamps: a rest longer than 24 h (cycles normally start about 4 h apart), a low previous cycle (a partial discharge), or neither. Of the 26 jumps above 0.1 Ah, 22 follow a long rest. That is expected Li-ion behaviour, since cells recover some capacity after resting. Three have no identified cause; two of these hit B0033 and B0034 at the same moment, which points to the test rig.
 
 ### CAN checks
 The DBC file defines three messages:
